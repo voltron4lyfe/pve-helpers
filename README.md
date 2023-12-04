@@ -154,27 +154,29 @@ cat /etc/pve/qemu-server/110.conf
 In this particular use case, all interrupts with `vfio` in their name are assigned to cores `4,12,5,13,6,14,7,15,2,10,3,11`, which in term correspond to cores `2-7` and their SMT equivalents `10-15`.
 In other words, cores `2,3,4,5,6,7` from an 8 core 3700x are assigned to the VM and to all of the interrupts from the GPU, the USB onboard controller, and the onboard audio controller.
 
-### 2.5. `qm_conflict` and `qm_depends`
+### 2.5. `qm_conflict`, `qm_conflict_mutex` and `qm_depends`
 
 Sometimes some VMs are conflicting with each other due to dependency on the same resources,
 like disks, or VGA.
 
 There are helper commands to shutdown (the `qm_conflict`) or start (the `qm_depends`)
-when main machine is being started.
+when main machine is being started. `qm_conflict_mutex` will restart the conflicting
+VM after this machine finishes.
 
 ```yaml
 cat /etc/pve/qemu-server/204.conf
 
 # qm_conflict 204
 # qm_depends 207
+# qm_conflict_mutex 208
 ...
 ```
 
-This first `qm_conflict` will shuttdown VM with VMID 204 before starting the current one,
-and it will also start VMID 207, that might be a sibiling VM.
+This first `qm_conflict` will shutdown VM with VMID 204 before starting the current one,
+and it will also start VMID 207, that might be a sibling VM.
 
 I use the `qm_conflict` or `qm_depends` to run Linux VM sometimes with VGA passthrough,
-sometimes as a sibiling VM without graphics cards passed, but running in a console mode.
+sometimes as a sibling VM without graphics cards passed, but running in a console mode.
 
 Be careful if you use `pci_unbind` and `pci_rebind`, they should be after the `qm_*` commands.
 
